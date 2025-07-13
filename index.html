@@ -64,7 +64,11 @@
                     </div>
                 </div>
             </div>
-            <div class="text-center mb-8"><button id="analyzeBtn" class="w-full sm:w-auto bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-indigo-300">Analyze & Score CV</button></div>
+            <!-- Action Buttons Container -->
+            <div class="text-center mb-8">
+                <button id="analyzeBtn" class="w-full sm:w-auto bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-indigo-300">Analyze & Score CV</button>
+                <button id="resetBtn" class="hidden w-full sm:w-auto bg-gray-500 text-white font-bold py-3 px-8 rounded-lg hover:bg-gray-600 transition-all duration-300">Start New Analysis</button>
+            </div>
             <div id="results" class="hidden">
                 <div id="loader" class="flex justify-center items-center my-8"><div class="loader"></div></div>
                 <div id="centralError" class="hidden card bg-red-50 border-l-4 border-red-400 text-red-700 p-4" role="alert"><p class="font-bold">Analysis Failed</p><p id="centralErrorMessage"></p></div>
@@ -74,7 +78,7 @@
                         <div class="card text-center items-center justify-center flex flex-col">
                             <h3 class="text-lg sm:text-xl font-semibold mb-2 text-gray-700">Overall Match Score</h3>
                             <div class="relative w-32 h-32">
-                                <svg class="w-full h-full" viewBox="0 0 36 36"><path class="text-gray-200" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3" /><path id="score-circle" class="text-indigo-500" stroke-linecap="round" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="0, 100" /></svg>
+                                <svg class="w-full h-full" viewBox="0 0 36 36"><path class="text-gray-200" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3" /><path id="score-circle" class="text-indigo-500" stroke-linecap="round" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="100, 100" /></svg>
                                 <div id="score" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-3xl sm:text-4xl font-bold text-gray-800">0%</div>
                             </div>
                         </div>
@@ -93,6 +97,7 @@
     <script type="module">
         if (window.pdfjsLib) { pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js'; }
         const analyzeBtn = document.getElementById('analyzeBtn');
+        const resetBtn = document.getElementById('resetBtn');
         const resultsDiv = document.getElementById('results');
         const loader = document.getElementById('loader');
         const resultsContent = document.getElementById('resultsContent');
@@ -110,6 +115,7 @@
         function getTextFromTxt(file) { return new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.onerror = () => reject(reader.error); reader.readAsText(file); }); }
         async function getTextFromFile(file) { if (file.type === 'application/pdf') { return await getTextFromPdf(file); } else if (file.type === 'text/plain') { return await getTextFromTxt(file); } else { throw new Error(`Unsupported file type: ${file.type}. Please upload a PDF or TXT file.`); } }
         async function getTextFromInput(type) { const isPasteActive = document.querySelector(`[data-tab-group="${type}"].active`).dataset.tabTarget.includes('paste'); if (isPasteActive) { const content = document.getElementById(type === 'jd' ? 'jobDescription' : 'resume').value.trim(); if (!content) throw new Error(`Please paste the ${type === 'jd' ? 'Job Description' : 'CV'} text.`); return content; } else { const fileInput = document.getElementById(type === 'jd' ? 'jobFile' : 'resumeFile'); if (fileInput.files.length === 0) throw new Error(`Please upload a file for the ${type === 'jd' ? 'Job Description' : 'CV'}.`); return await getTextFromFile(fileInput.files[0]); } }
+        
         analyzeBtn.addEventListener('click', async () => {
             resultsDiv.classList.remove('hidden');
             loader.classList.remove('hidden');
@@ -117,7 +123,6 @@
             centralErrorDiv.classList.add('hidden');
             try {
                 const [jobDescription, resume] = await Promise.all([getTextFromInput('jd'), getTextFromInput('cv')]);
-                // This is the CORRECTED URL for the Netlify function
                 const proxyApiUrl = '/.netlify/functions/analyze';
                 const response = await fetch(proxyApiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jobDescription: jobDescription, resume: resume }) });
                 if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.error || 'API request failed'); }
@@ -125,6 +130,32 @@
                 if (result.candidates && result.candidates[0]?.content?.parts[0]) { const data = JSON.parse(result.candidates[0].content.parts[0].text); displayResults(data); resultsContent.classList.remove('hidden'); } else { throw new Error("Could not parse the analysis from the AI."); }
             } catch (error) { console.error('Error:', error); showError(error.message); } finally { loader.classList.add('hidden'); }
         });
+
+        resetBtn.addEventListener('click', () => {
+            // Clear textareas and file inputs
+            document.getElementById('jobDescription').value = '';
+            document.getElementById('resume').value = '';
+            jobFileInput.value = null;
+            resumeFileInput.value = null;
+            jobFileName.textContent = '';
+            resumeFileName.textContent = '';
+
+            // Hide results and error sections
+            resultsDiv.classList.add('hidden');
+            resultsContent.classList.add('hidden');
+            centralErrorDiv.classList.add('hidden');
+
+            // Toggle button visibility
+            resetBtn.classList.add('hidden');
+            analyzeBtn.classList.remove('hidden');
+
+            // Reset score circle
+            const scoreCircle = document.getElementById('score-circle');
+            scoreCircle.style.transition = 'none';
+            scoreCircle.style.strokeDasharray = '100, 100'; // Reset to empty
+            document.getElementById('score').textContent = '0%';
+        });
+
         function displayResults(data) {
             const scoreElement = document.getElementById('score');
             const scoreCircle = document.getElementById('score-circle');
@@ -143,8 +174,19 @@
             const suggestionsUl = document.getElementById('suggestions');
             suggestionsUl.innerHTML = '';
             data.suggestions.forEach(sugg => { const li = document.createElement('li'); li.textContent = sugg; suggestionsUl.appendChild(li); });
+
+            // Show reset button and hide analyze button
+            analyzeBtn.classList.add('hidden');
+            resetBtn.classList.remove('hidden');
         }
-        function showError(message) { centralErrorMessage.textContent = message; centralErrorDiv.classList.remove('hidden'); }
+
+        function showError(message) { 
+            centralErrorMessage.textContent = message; 
+            centralErrorDiv.classList.remove('hidden');
+            // Also show reset button on error
+            analyzeBtn.classList.add('hidden');
+            resetBtn.classList.remove('hidden');
+        }
     </script>
     <footer class="bg-gray-800 text-white shadow-inner mt-auto">
         <div class="container mx-auto px-6 py-4">
