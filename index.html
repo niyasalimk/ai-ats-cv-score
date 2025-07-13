@@ -6,444 +6,156 @@
     <title>AI ATS CV Score Checker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- PDF.js library for reading PDF files -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-        main {
-            flex-grow: 1;
-        }
-        .card {
-            background-color: white;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-            padding: 1rem 1.5rem; /* Adjusted padding for mobile */
-            transition: all 0.3s ease-in-out;
-        }
-        @media (min-width: 768px) {
-            .card {
-                padding: 1.5rem;
-            }
-        }
-        .card:hover {
-            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-        }
-        .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498db;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .tab-btn {
-            padding: 0.5rem 0.75rem; /* Adjusted padding */
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-            transition: all 0.3s;
-            font-size: 0.875rem; /* Smaller font size for tabs */
-        }
-        @media (min-width: 640px) {
-             .tab-btn {
-                padding: 0.5rem 1rem;
-                font-size: 1rem;
-            }
-        }
-        .tab-btn.active {
-            border-color: #4f46e5; /* indigo-600 */
-            color: #4f46e5;
-            font-weight: 600;
-        }
-        .file-upload-area {
-            border: 2px dashed #d1d5db;
-            border-radius: 0.5rem;
-            padding: 1.5rem; /* Adjusted padding */
-            text-align: center;
-            cursor: pointer;
-            background-color: #f9fafb;
-        }
-        .file-upload-area:hover {
-            background-color: #f3f4f6;
-        }
+        body { font-family: 'Inter', sans-serif; display: flex; flex-direction: column; min-height: 100vh; }
+        main { flex-grow: 1; }
+        .card { background-color: white; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); padding: 1rem 1.5rem; transition: all 0.3s ease-in-out; }
+        @media (min-width: 768px) { .card { padding: 1.5rem; } }
+        .card:hover { box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .tab-btn { padding: 0.5rem 0.75rem; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.3s; font-size: 0.875rem; }
+        @media (min-width: 640px) { .tab-btn { padding: 0.5rem 1rem; font-size: 1rem; } }
+        .tab-btn.active { border-color: #4f46e5; color: #4f46e5; font-weight: 600; }
+        .file-upload-area { border: 2px dashed #d1d5db; border-radius: 0.5rem; padding: 1.5rem; text-align: center; cursor: pointer; background-color: #f9fafb; }
+        .file-upload-area:hover { background-color: #f3f4f6; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
-
     <!-- Header & Nav Bar -->
     <header class="bg-white shadow-sm sticky top-0 z-40">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center py-3">
-                <!-- Logo / Site Name -->
-                <div>
-                    <a href="#" class="text-2xl font-bold text-indigo-600">CV-AI Checker</a>
-                </div>
-
-                <!-- Desktop Navigation Links -->
+                <div><a href="#" class="text-2xl font-bold text-indigo-600">CV-AI Checker</a></div>
                 <nav class="hidden md:flex space-x-8">
                     <a href="#" class="text-gray-500 hover:text-gray-900 font-medium transition-colors">Home</a>
                     <a href="#" class="text-gray-500 hover:text-gray-900 font-medium transition-colors">About</a>
                     <a href="#" class="text-gray-500 hover:text-gray-900 font-medium transition-colors">Contact</a>
                 </nav>
-                
-                <!-- Mobile Menu Button -->
-                <div class="md:hidden">
-                     <button class="text-gray-500 hover:text-gray-600 focus:outline-none focus:text-gray-600">
-                           <svg class="h-6 w-6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
-                                 <path d="M4 6h16M4 12h16m-7 6h7"></path>
-                           </svg>
-                     </button>
-                </div>
             </div>
         </div>
     </header>
-
     <div class="container mx-auto p-4 md:p-6 max-w-7xl">
-        
-        <!-- Page Title Section -->
         <div class="text-center my-8">
             <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900">AI ATS CV Score Checker</h1>
             <p class="mt-2 text-base sm:text-lg text-gray-600">Analyze your CV against any job description.</p>
         </div>
-
         <main>
-            <!-- Input Section -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 mb-8">
-                <!-- Job Description Card -->
                 <div class="card">
                     <h2 class="text-xl sm:text-2xl font-semibold mb-4 text-gray-800">Job Description</h2>
                     <div class="border-b border-gray-200 mb-4">
-                        <nav class="-mb-px flex space-x-2 sm:space-x-4" aria-label="Tabs">
-                            <button class="tab-btn active" data-tab-target="#jd-paste-content" data-tab-group="jd">Paste Text</button>
-                            <button class="tab-btn" data-tab-target="#jd-upload-content" data-tab-group="jd">Upload File</button>
-                        </nav>
+                        <nav class="-mb-px flex space-x-2 sm:space-x-4"><button class="tab-btn active" data-tab-target="#jd-paste-content" data-tab-group="jd">Paste Text</button><button class="tab-btn" data-tab-target="#jd-upload-content" data-tab-group="jd">Upload File</button></nav>
                     </div>
-                    <div id="jd-paste-content" data-tab-content="jd" class="">
-                        <textarea id="jobDescription" class="w-full h-56 sm:h-72 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500" placeholder="Paste the full job description here..."></textarea>
-                    </div>
+                    <div id="jd-paste-content" data-tab-content="jd"><textarea id="jobDescription" class="w-full h-56 sm:h-72 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500" placeholder="Paste the full job description here..."></textarea></div>
                     <div id="jd-upload-content" data-tab-content="jd" class="hidden h-56 sm:h-72 flex items-center justify-center">
-                        <label for="jobFile" class="file-upload-area block w-full">
-                            <span class="text-indigo-600 font-semibold">Click to upload</span>
-                            <p class="text-xs text-gray-500 mt-1">PDF or TXT files</p>
-                            <p id="jobFileName" class="text-sm text-gray-700 mt-2 font-medium truncate"></p>
-                        </label>
-                        <input type="file" id="jobFile" class="hidden" accept=".txt,.pdf">
+                        <label for="jobFile" class="file-upload-area block w-full"><span class="text-indigo-600 font-semibold">Click to upload</span><p class="text-xs text-gray-500 mt-1">PDF or TXT files</p><p id="jobFileName" class="text-sm text-gray-700 mt-2 font-medium truncate"></p></label><input type="file" id="jobFile" class="hidden" accept=".txt,.pdf">
                     </div>
                 </div>
-
-                <!-- CV / Resume Card -->
                 <div class="card">
                     <h2 class="text-xl sm:text-2xl font-semibold mb-4 text-gray-800">Your CV / Resume</h2>
-                     <div class="border-b border-gray-200 mb-4">
-                        <nav class="-mb-px flex space-x-2 sm:space-x-4" aria-label="Tabs">
-                            <button class="tab-btn active" data-tab-target="#cv-paste-content" data-tab-group="cv">Paste Text</button>
-                            <button class="tab-btn" data-tab-target="#cv-upload-content" data-tab-group="cv">Upload File</button>
-                        </nav>
+                    <div class="border-b border-gray-200 mb-4">
+                        <nav class="-mb-px flex space-x-2 sm:space-x-4"><button class="tab-btn active" data-tab-target="#cv-paste-content" data-tab-group="cv">Paste Text</button><button class="tab-btn" data-tab-target="#cv-upload-content" data-tab-group="cv">Upload File</button></nav>
                     </div>
-                     <div id="cv-paste-content" data-tab-content="cv" class="">
-                        <textarea id="resume" class="w-full h-56 sm:h-72 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500" placeholder="Paste your entire CV or resume text here..."></textarea>
-                    </div>
+                    <div id="cv-paste-content" data-tab-content="cv"><textarea id="resume" class="w-full h-56 sm:h-72 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500" placeholder="Paste your entire CV or resume text here..."></textarea></div>
                     <div id="cv-upload-content" data-tab-content="cv" class="hidden h-56 sm:h-72 flex items-center justify-center">
-                        <label for="resumeFile" class="file-upload-area block w-full">
-                            <span class="text-indigo-600 font-semibold">Click to upload</span>
-                            <p class="text-xs text-gray-500 mt-1">PDF or TXT files</p>
-                            <p id="resumeFileName" class="text-sm text-gray-700 mt-2 font-medium truncate"></p>
-                        </label>
-                        <input type="file" id="resumeFile" class="hidden" accept=".txt,.pdf">
+                        <label for="resumeFile" class="file-upload-area block w-full"><span class="text-indigo-600 font-semibold">Click to upload</span><p class="text-xs text-gray-500 mt-1">PDF or TXT files</p><p id="resumeFileName" class="text-sm text-gray-700 mt-2 font-medium truncate"></p></label><input type="file" id="resumeFile" class="hidden" accept=".txt,.pdf">
                     </div>
                 </div>
             </div>
-
-            <!-- Action Button -->
-            <div class="text-center mb-8">
-                <button id="analyzeBtn" class="w-full sm:w-auto bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-indigo-300">
-                    Analyze & Score CV
-                </button>
-            </div>
-
-            <!-- Results Section -->
+            <div class="text-center mb-8"><button id="analyzeBtn" class="w-full sm:w-auto bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-indigo-300">Analyze & Score CV</button></div>
             <div id="results" class="hidden">
                 <div id="loader" class="flex justify-center items-center my-8"><div class="loader"></div></div>
-                <div id="centralError" class="hidden card bg-red-50 border-l-4 border-red-400 text-red-700 p-4" role="alert">
-                    <p class="font-bold">Analysis Failed</p>
-                    <p id="centralErrorMessage"></p>
-                </div>
+                <div id="centralError" class="hidden card bg-red-50 border-l-4 border-red-400 text-red-700 p-4" role="alert"><p class="font-bold">Analysis Failed</p><p id="centralErrorMessage"></p></div>
                 <div id="resultsContent" class="hidden">
                     <h2 class="text-2xl sm:text-3xl font-bold text-center mb-8 text-gray-900">Analysis Report</h2>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                         <div class="card text-center items-center justify-center flex flex-col">
-                           <h3 class="text-lg sm:text-xl font-semibold mb-2 text-gray-700">Overall Match Score</h3>
-                           <div class="relative w-32 h-32">
-                               <svg class="w-full h-full" viewBox="0 0 36 36">
-                                   <path class="text-gray-200" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3" />
-                                   <path id="score-circle" class="text-indigo-500" stroke-linecap="round" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="0, 100" />
-                                 </svg>
-                               <div id="score" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-3xl sm:text-4xl font-bold text-gray-800">0%</div>
-                           </div>
+                            <h3 class="text-lg sm:text-xl font-semibold mb-2 text-gray-700">Overall Match Score</h3>
+                            <div class="relative w-32 h-32">
+                                <svg class="w-full h-full" viewBox="0 0 36 36"><path class="text-gray-200" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3" /><path id="score-circle" class="text-indigo-500" stroke-linecap="round" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="0, 100" /></svg>
+                                <div id="score" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-3xl sm:text-4xl font-bold text-gray-800">0%</div>
+                            </div>
                         </div>
-                        <div class="card md:col-span-2">
-                            <h3 class="text-lg sm:text-xl font-semibold mb-3 text-gray-700">AI Summary</h3>
-                            <p id="summary" class="text-gray-600"></p>
-                        </div>
+                        <div class="card md:col-span-2"><h3 class="text-lg sm:text-xl font-semibold mb-3 text-gray-700">AI Summary</h3><p id="summary" class="text-gray-600"></p></div>
                     </div>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div class="card">
-                            <h3 class="text-lg sm:text-xl font-semibold mb-4 text-gray-700">Keyword Analysis</h3>
-                            <div class="mb-4">
-                                <h4 class="font-semibold text-green-600 mb-2">Matching Keywords</h4>
-                                <div id="matchingKeywords" class="flex flex-wrap gap-2"></div>
-                            </div>
-                            <div>
-                                <h4 class="font-semibold text-red-600 mb-2">Missing Keywords</h4>
-                                <div id="missingKeywords" class="flex flex-wrap gap-2"></div>
-                            </div>
-                        </div>
-                        <div class="card">
-                            <h3 class="text-lg sm:text-xl font-semibold mb-4 text-gray-700">Suggestions for Improvement</h3>
-                            <ul id="suggestions" class="list-disc list-inside space-y-2 text-gray-600"></ul>
-                        </div>
-                        <div class="card">
-                            <h3 class="text-lg sm:text-xl font-semibold mb-4 text-gray-700">Experience Analysis</h3>
-                            <p id="experienceAnalysis" class="text-gray-600"></p>
-                        </div>
-                        <div class="card">
-                            <h3 class="text-lg sm:text-xl font-semibold mb-4 text-gray-700">Education Analysis</h3>
-                            <p id="educationAnalysis" class="text-gray-600"></p>
-                        </div>
+                        <div class="card"><h3 class="text-lg sm:text-xl font-semibold mb-4 text-gray-700">Keyword Analysis</h3><div class="mb-4"><h4 class="font-semibold text-green-600 mb-2">Matching Keywords</h4><div id="matchingKeywords" class="flex flex-wrap gap-2"></div></div><div><h4 class="font-semibold text-red-600 mb-2">Missing Keywords</h4><div id="missingKeywords" class="flex flex-wrap gap-2"></div></div></div>
+                        <div class="card"><h3 class="text-lg sm:text-xl font-semibold mb-4 text-gray-700">Suggestions for Improvement</h3><ul id="suggestions" class="list-disc list-inside space-y-2 text-gray-600"></ul></div>
+                        <div class="card"><h3 class="text-lg sm:text-xl font-semibold mb-4 text-gray-700">Experience Analysis</h3><p id="experienceAnalysis" class="text-gray-600"></p></div>
+                        <div class="card"><h3 class="text-lg sm:text-xl font-semibold mb-4 text-gray-700">Education Analysis</h3><p id="educationAnalysis" class="text-gray-600"></p></div>
                     </div>
                 </div>
             </div>
         </main>
     </div>
-
     <script type="module">
-        // --- PDF.js Worker Configuration ---
-        if (window.pdfjsLib) {
-            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
-        }
-
-        // --- DOM Elements ---
+        if (window.pdfjsLib) { pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js'; }
         const analyzeBtn = document.getElementById('analyzeBtn');
         const resultsDiv = document.getElementById('results');
         const loader = document.getElementById('loader');
         const resultsContent = document.getElementById('resultsContent');
         const centralErrorDiv = document.getElementById('centralError');
         const centralErrorMessage = document.getElementById('centralErrorMessage');
-        
         const jobFileInput = document.getElementById('jobFile');
         const resumeFileInput = document.getElementById('resumeFile');
         const jobFileName = document.getElementById('jobFileName');
         const resumeFileName = document.getElementById('resumeFileName');
-
-        // --- Tab Functionality ---
         const tabButtons = document.querySelectorAll('.tab-btn');
-        tabButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const group = button.dataset.tabGroup;
-                const target = document.querySelector(button.dataset.tabTarget);
-
-                document.querySelectorAll(`[data-tab-group="${group}"]`).forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
-
-                document.querySelectorAll(`[data-tab-content="${group}"]`).forEach(content => content.classList.add('hidden'));
-                target.classList.remove('hidden');
-            });
-        });
-
-        // --- File Input Handlers ---
-        jobFileInput.addEventListener('change', () => {
-            jobFileName.textContent = jobFileInput.files.length > 0 ? jobFileInput.files[0].name : '';
-        });
-        resumeFileInput.addEventListener('change', () => {
-            resumeFileName.textContent = resumeFileInput.files.length > 0 ? resumeFileInput.files[0].name : '';
-        });
-
-        // --- Core Logic: File Reading ---
-        async function getTextFromPdf(file) {
-            const arrayBuffer = await file.arrayBuffer();
-            const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
-            let fullText = '';
-            for (let i = 1; i <= pdf.numPages; i++) {
-                const page = await pdf.getPage(i);
-                const textContent = await page.getTextContent();
-                fullText += textContent.items.map(item => item.str).join(' ') + '\n';
-            }
-            return fullText;
-        }
-
-        function getTextFromTxt(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = () => reject(reader.error);
-                reader.readAsText(file);
-            });
-        }
-        
-        async function getTextFromFile(file) {
-            if (file.type === 'application/pdf') {
-                return await getTextFromPdf(file);
-            } else if (file.type === 'text/plain') {
-                return await getTextFromTxt(file);
-            } else {
-                throw new Error(`Unsupported file type: ${file.type}. Please upload a PDF or TXT file.`);
-            }
-        }
-
-        async function getTextFromInput(type) {
-            const isPasteActive = document.querySelector(`[data-tab-group="${type}"].active`).dataset.tabTarget.includes('paste');
-            if (isPasteActive) {
-                const content = document.getElementById(type === 'jd' ? 'jobDescription' : 'resume').value.trim();
-                if (!content) throw new Error(`Please paste the ${type === 'jd' ? 'Job Description' : 'CV'} text.`);
-                return content;
-            } else {
-                const fileInput = document.getElementById(type === 'jd' ? 'jobFile' : 'resumeFile');
-                if (fileInput.files.length === 0) throw new Error(`Please upload a file for the ${type === 'jd' ? 'Job Description' : 'CV'}.`);
-                return await getTextFromFile(fileInput.files[0]);
-            }
-        }
-
-        // --- Main Analysis Trigger ---
+        tabButtons.forEach(button => { button.addEventListener('click', () => { const group = button.dataset.tabGroup; const target = document.querySelector(button.dataset.tabTarget); document.querySelectorAll(`[data-tab-group="${group}"]`).forEach(btn => btn.classList.remove('active')); button.classList.add('active'); document.querySelectorAll(`[data-tab-content="${group}"]`).forEach(content => content.classList.add('hidden')); target.classList.remove('hidden'); }); });
+        jobFileInput.addEventListener('change', () => { jobFileName.textContent = jobFileInput.files.length > 0 ? jobFileInput.files[0].name : ''; });
+        resumeFileInput.addEventListener('change', () => { resumeFileName.textContent = resumeFileInput.files.length > 0 ? resumeFileInput.files[0].name : ''; });
+        async function getTextFromPdf(file) { const arrayBuffer = await file.arrayBuffer(); const pdf = await pdfjsLib.getDocument(arrayBuffer).promise; let fullText = ''; for (let i = 1; i <= pdf.numPages; i++) { const page = await pdf.getPage(i); const textContent = await page.getTextContent(); fullText += textContent.items.map(item => item.str).join(' ') + '\n'; } return fullText; }
+        function getTextFromTxt(file) { return new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.onerror = () => reject(reader.error); reader.readAsText(file); }); }
+        async function getTextFromFile(file) { if (file.type === 'application/pdf') { return await getTextFromPdf(file); } else if (file.type === 'text/plain') { return await getTextFromTxt(file); } else { throw new Error(`Unsupported file type: ${file.type}. Please upload a PDF or TXT file.`); } }
+        async function getTextFromInput(type) { const isPasteActive = document.querySelector(`[data-tab-group="${type}"].active`).dataset.tabTarget.includes('paste'); if (isPasteActive) { const content = document.getElementById(type === 'jd' ? 'jobDescription' : 'resume').value.trim(); if (!content) throw new Error(`Please paste the ${type === 'jd' ? 'Job Description' : 'CV'} text.`); return content; } else { const fileInput = document.getElementById(type === 'jd' ? 'jobFile' : 'resumeFile'); if (fileInput.files.length === 0) throw new Error(`Please upload a file for the ${type === 'jd' ? 'Job Description' : 'CV'}.`); return await getTextFromFile(fileInput.files[0]); } }
         analyzeBtn.addEventListener('click', async () => {
             resultsDiv.classList.remove('hidden');
             loader.classList.remove('hidden');
             resultsContent.classList.add('hidden');
             centralErrorDiv.classList.add('hidden');
-
             try {
-                const [jobDescription, resume] = await Promise.all([
-                    getTextFromInput('jd'),
-                    getTextFromInput('cv')
-                ]);
-
-                // IMPORTANT: This is the URL to your backend proxy (serverless function).
-                // You must create this backend yourself and replace this URL.
-                const proxyApiUrl = 'https://your-backend-proxy-url.com/api/analyze';
-
-                const response = await fetch(proxyApiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    // Send only the raw data to your proxy.
-                    // Your backend will add the prompt and API key.
-                    body: JSON.stringify({
-                        jobDescription: jobDescription,
-                        resume: resume
-                    })
-                });
-
-                if (!response.ok) {
-                    const errorBody = await response.text();
-                    throw new Error(`API request failed with status ${response.status}: ${errorBody}`);
-                }
-
+                const [jobDescription, resume] = await Promise.all([getTextFromInput('jd'), getTextFromInput('cv')]);
+                // This is the CORRECTED URL for the Netlify function
+                const proxyApiUrl = '/.netlify/functions/analyze';
+                const response = await fetch(proxyApiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jobDescription: jobDescription, resume: resume }) });
+                if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.error || 'API request failed'); }
                 const result = await response.json();
-                
-                // The proxy should forward the Google API response structure.
-                if (result.candidates && result.candidates[0]?.content?.parts[0]) {
-                    const data = JSON.parse(result.candidates[0].content.parts[0].text);
-                    displayResults(data);
-                    resultsContent.classList.remove('hidden');
-                } else {
-                    // This error might also be triggered if your proxy returns a different error format.
-                    throw new Error("Could not parse the analysis from the AI. The response format was unexpected.");
-                }
-
-            } catch (error) {
-                console.error('Error:', error);
-                showError(error.message);
-            } finally {
-                loader.classList.add('hidden');
-            }
+                if (result.candidates && result.candidates[0]?.content?.parts[0]) { const data = JSON.parse(result.candidates[0].content.parts[0].text); displayResults(data); resultsContent.classList.remove('hidden'); } else { throw new Error("Could not parse the analysis from the AI."); }
+            } catch (error) { console.error('Error:', error); showError(error.message); } finally { loader.classList.add('hidden'); }
         });
-
-        // --- UI Display Functions ---
         function displayResults(data) {
             const scoreElement = document.getElementById('score');
             const scoreCircle = document.getElementById('score-circle');
             const scoreValue = Math.round(data.matchScore);
             scoreElement.textContent = `${scoreValue}%`;
-            // Animate the score circle
-            const circumference = 2 * Math.PI * 15.9155; // Radius from SVG path
+            const circumference = 2 * Math.PI * 15.9155;
             const dashoffset = circumference - (scoreValue / 100) * circumference;
             scoreCircle.style.strokeDasharray = `${circumference}`;
-            setTimeout(() => {
-                scoreCircle.style.strokeDashoffset = `${dashoffset}`;
-                scoreCircle.style.transition = 'stroke-dashoffset 1s ease-out';
-            }, 100);
-
+            setTimeout(() => { scoreCircle.style.strokeDashoffset = `${dashoffset}`; scoreCircle.style.transition = 'stroke-dashoffset 1s ease-out'; }, 100);
             document.getElementById('summary').textContent = data.summary;
-            
-            const renderKeywords = (elementId, keywords) => {
-                const div = document.getElementById(elementId);
-                div.innerHTML = '';
-                const colorClass = elementId.includes('matching') ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
-                keywords.forEach(kw => {
-                    const span = document.createElement('span');
-                    span.className = `${colorClass} text-sm font-medium mr-2 mb-2 px-2.5 py-0.5 rounded inline-block`;
-                    span.textContent = kw;
-                    div.appendChild(span);
-                });
-            };
+            const renderKeywords = (elementId, keywords) => { const div = document.getElementById(elementId); div.innerHTML = ''; const colorClass = elementId.includes('matching') ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'; keywords.forEach(kw => { const span = document.createElement('span'); span.className = `${colorClass} text-sm font-medium mr-2 mb-2 px-2.5 py-0.5 rounded inline-block`; span.textContent = kw; div.appendChild(span); }); };
             renderKeywords('matchingKeywords', data.keywordAnalysis.matchingKeywords);
             renderKeywords('missingKeywords', data.keywordAnalysis.missingKeywords);
-            
             document.getElementById('experienceAnalysis').textContent = data.experienceAnalysis;
             document.getElementById('educationAnalysis').textContent = data.educationAnalysis;
-
             const suggestionsUl = document.getElementById('suggestions');
             suggestionsUl.innerHTML = '';
-            data.suggestions.forEach(sugg => {
-                const li = document.createElement('li');
-                li.textContent = sugg;
-                suggestionsUl.appendChild(li);
-            });
+            data.suggestions.forEach(sugg => { const li = document.createElement('li'); li.textContent = sugg; suggestionsUl.appendChild(li); });
         }
-
-        function showError(message) {
-            centralErrorMessage.textContent = message;
-            centralErrorDiv.classList.remove('hidden');
-        }
+        function showError(message) { centralErrorMessage.textContent = message; centralErrorDiv.classList.remove('hidden'); }
     </script>
-    
-    <!-- Footer Section -->
     <footer class="bg-gray-800 text-white shadow-inner mt-auto">
         <div class="container mx-auto px-6 py-4">
             <div class="flex flex-col items-center justify-center space-y-4">
-                <!-- Creator Credit & Copyright -->
                 <div class="text-center">
-                    <p class="text-sm text-gray-400 mb-1">
-                        Created by 
-                        <a href="https://www.linkedin.com/in/niyas-ali-m-k-b454b1282/" target="_blank" rel="noopener noreferrer" class="font-semibold text-white hover:text-blue-400 transition-colors duration-300">
-                            Niyas Ali M K
-                        </a>
-                    </p>
-                    <p class="text-xs text-gray-500">
-                        &copy; 2025 Niyas Ali M K. All Rights Reserved.
-                    </p>
+                    <p class="text-sm text-gray-400 mb-1">Created by <a href="https://www.linkedin.com/in/niyas-ali-m-k-b454b1282/" target="_blank" rel="noopener noreferrer" class="font-semibold text-white hover:text-blue-400 transition-colors duration-300">Niyas Ali M K</a></p>
+                    <p class="text-xs text-gray-500">&copy; 2025 Niyas Ali M K. All Rights Reserved.</p>
                 </div>
-
-                <!-- Social Media Links -->
                 <div class="flex items-center space-x-4">
-                    <a href="https://www.linkedin.com/in/niyas-ali-m-k-b454b1282/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn Profile" class="text-gray-400 hover:text-white transition-colors duration-300">
-                        <!-- LinkedIn SVG Icon -->
-                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
-                        </svg>
-                    </a>
-                    <a href="#" target="_blank" rel="noopener noreferrer" aria-label="Instagram Profile" class="text-gray-400 hover:text-white transition-colors duration-300">
-                        <!-- Instagram SVG Icon -->
-                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                           <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.85s-.011 3.584-.069 4.85c-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07s-3.584-.012-4.85-.07c-3.252-.148-4.771-1.691-4.919-4.919-.058-1.265-.069-1.645-.069-4.85s.011-3.584.069-4.85c.149-3.225 1.664-4.771 4.919-4.919 1.266-.058 1.644-.07 4.85-.07zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948s.014 3.667.072 4.947c.2 4.358 2.618 6.78 6.98 6.98 1.281.059 1.689.073 4.948.073s3.667-.014 4.947-.072c4.358-.2 6.78-2.618 6.98-6.98.059-1.281.073-1.689.073-4.948s-.014-3.667-.072-4.947c-.2-4.358-2.618-6.78-6.98-6.98-1.281-.059-1.689-.073-4.948-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.162 6.162 6.162 6.162-2.759 6.162-6.162-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4s1.791-4 4-4 4 1.79 4 4-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44 1.441-.645 1.441-1.44-.645-1.44-1.441-1.44z"/>
-                        </svg>
-                    </a>
+                    <a href="https://www.linkedin.com/in/niyas-ali-m-k-b454b1282/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn Profile" class="text-gray-400 hover:text-white transition-colors duration-300"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg></a>
+                    <a href="#" target="_blank" rel="noopener noreferrer" aria-label="Instagram Profile" class="text-gray-400 hover:text-white transition-colors duration-300"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.85s-.011 3.584-.069 4.85c-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07s-3.584-.012-4.85-.07c-3.252-.148-4.771-1.691-4.919-4.919-.058-1.265-.069-1.645-.069-4.85s.011-3.584.069-4.85c.149-3.225 1.664-4.771 4.919-4.919 1.266-.058 1.644-.07 4.85-.07zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948s.014 3.667.072 4.947c.2 4.358 2.618 6.78 6.98 6.98 1.281.059 1.689.073 4.948.073s3.667-.014 4.947-.072c4.358-.2 6.78-2.618 6.98-6.98.059-1.281.073-1.689.073-4.948s-.014-3.667-.072-4.947c-.2-4.358-2.618-6.78-6.98-6.98-1.281-.059-1.689-.073-4.948-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.162 6.162 6.162 6.162-2.759 6.162-6.162-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4s1.791-4 4-4 4 1.79 4 4-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44 1.441-.645 1.441-1.44-.645-1.44-1.441-1.44z"/></svg></a>
                 </div>
             </div>
         </div>
